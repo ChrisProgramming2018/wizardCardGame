@@ -24,9 +24,8 @@ from pygame.locals import *
 pygame.font.init()
 pygame.mixer.init()
 
-
-X = 1800
-Y = 800
+X = 1850
+Y = 850
 
 screen = pygame.display.set_mode((X, Y))
 clock = pygame.time.Clock()
@@ -71,7 +70,16 @@ def playClick():
     clickSound = soundLoad("click2.wav")
     clickSound.play()
 ###### SYSTEM FUNCTIONS END #######
-
+class cardSprite(pygame.sprite.Sprite):
+    """ Sprite that displays a specific card. """
+    def __init__(self, card, position):
+        pygame.sprite.Sprite.__init__(self)
+        cardImage = card + ".png"
+        self.image, self.rect = imageLoad(cardImage, 1)
+        self.position = position
+    def update(self):
+        self.rect.center = self.position
+            
 ###### MAIN GAME FUNCTION BEGINS ######
 def mainGame():
     """ Function that contains all the game logic. """
@@ -273,7 +281,7 @@ def mainGame():
             self.image, self.rect = imageLoad("down.png", 0)
             self.position = (710, 255)
         
-        def update(self, mX, mY, bet, click, roundEnd):
+        def update(self, mX, mY, value, click):
             if roundEnd == 1: self.image, self.rect = imageLoad("down.png", 0)
             else: self.image, self.rect = imageLoad("down-grey.png", 0)
 
@@ -282,7 +290,9 @@ def mainGame():
             print("down button", self.rect.center)
             if self.rect.collidepoint(mX, mY) == 1 and click == 1:
                 print("Button Clicked ")
-                sys.exit()
+                value -= 1
+                click = 0
+            return value, click
 
     class betButtonUp(pygame.sprite.Sprite):
         """ Button that allows player to increase his bet (in between hands only). """
@@ -292,7 +302,7 @@ def mainGame():
             self.image, self.rect = imageLoad("up.png", 0)
             self.position = (710, 255)
        
-        def update(self, mX, mY, bet, funds, click):
+        def update(self, mX, mY, value, click):
             
             if roundEnd == 1: self.image, self.rect = imageLoad("up.png", 0)
             else: self.image, self.rect = imageLoad("up-grey.png", 0)
@@ -302,7 +312,9 @@ def mainGame():
             print("pos button", self.rect.center)
             if self.rect.collidepoint(mX, mY) == 1 and click == 1:
                 print("Button up Clicked ")
-                sys.exit()
+                value += 1
+                click = 0
+            return value, click
 
     class ExitButton(pygame.sprite.Sprite):
         """ Button that allows player to increase his bet (in between hands only). """
@@ -312,7 +324,7 @@ def mainGame():
             self.image, self.rect = imageLoad("exit.png", 0)
             self.position = (710, 355)
        
-        def update(self, mX, mY, bet, funds, click):
+        def update(self, mX, mY, click):
             self.image, self.rect = imageLoad("exit.png", 0)
             self.position = (710, 355)
             self.rect.center = self.position
@@ -328,12 +340,13 @@ def mainGame():
     textFont = pygame.font.Font(None, 28)
 
     # This sets up the background image, and its container rect
-    background, backgroundRect = imageLoad("bjs.png", 0)
+    background, backgroundRect = imageLoad("spielfeld_big.jpg", 0)
     
     # cards is the sprite group that will contain sprites for the dealer's cards
     cards = pygame.sprite.Group()
     # playerCards will serve the same purpose, but for the player
     playerCards = pygame.sprite.Group()
+    cards = pygame.sprite.Group()
 
     # This creates instances of all the button sprites
     bbU = betButtonUp()
@@ -355,7 +368,7 @@ def mainGame():
     click = 0
 
     # The default funds start at $100.00, and the initial bet defaults to $10.00
-    funds = 100.00
+    value = 0
     bet = 10.00
 
     # This is a counter that counts the number of rounds played in a given session
@@ -383,19 +396,19 @@ def mainGame():
         displayFont = display(textFont, "Click on start to start the game.")
         
         for round_idx in range(max_rounds):
-            screen.blit(displayFont, (10,444))
-            fundsFont = pygame.font.Font.render(textFont, "Funds: $%.2f" %(funds), 1, (255,255,255), (0,0,0))
+            screen.blit(displayFont, (100,444))
+            fundsFont = pygame.font.Font.render(textFont, "Card win estimate: $%.2f" %(value), 1, (255,255,255), (0,0,0))
             screen.blit(fundsFont, (663,205))
-            betFont = pygame.font.Font.render(textFont, "Bet: $%.2f" %(bet), 1, (255,255,255), (0,0,0))
-            screen.blit(betFont, (680,285))
             hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 1, (255,255,255), (0,0,0))
             screen.blit(hpFont, (663, 180))
             print("new")
+            playerCards = showCards(deck, playerCards, round_idx);
             buttons.draw(screen)
             pygame.display.flip()
-            bbU.update(mX, mY, bet, funds, click)
-            bbD.update(mX, mY, bet, funds, click)
-            exitB.update(mX, mY, bet, funds, click)
+            value, click = bbU.update(mX, mY, value, click)
+            value, click = bbD.update(mX, mY, value, click)
+            exitB.update(mX, mY,click)
+            print("click", click)
             # event_wait = pygame.event.wait()
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -407,10 +420,42 @@ def mainGame():
                     elif event.type == MOUSEBUTTONUP:
                         mX, mY = 0, 0
                         click = 0
+            if len(playerCards) is not 0:
+                playerCards.update()
+                playerCards.draw(screen)
+                cards.update()
+                cards.draw(screen)
+            time.sleep(2)
             print("click x {} y {} ".format(mX, mY))
-            time.sleep(1)
+        
     ###### MAIN GAME LOOP ENDS ######
 ###### MAIN GAME FUNCTION ENDS ######
+
+
+def setCardEstimate():
+    """ """
+    pass 
+
+def showCards(deck_dict, playerCards,round_idx):
+    print(" show cards ")
+    dCardPos = (450, 470)
+    pCardPos = (X - 400, Y - 120)
+    #pCardPos = (1400, 680)
+    playerCards.empty()
+    key_list = []
+    playerHand = []
+    for key in deck_dict.keys() :
+        key_list.append(key)
+    
+    for idx in range(round_idx):
+        playerHand.append(random.choice(key_list))
+    for x in playerHand:
+        card = cardSprite(x, pCardPos)
+        pCardPos = (pCardPos[0] - 150, pCardPos [1])
+        playerCards.add(card)
+
+    return playerCards
+
 
 if __name__ == "__main__":
     mainGame()
