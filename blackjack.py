@@ -1,19 +1,4 @@
-#!/usr/bin/python
-# Glackjack Version 1.0, Copyright 2008 Allan Lavell
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 3
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
+import copy
 import random
 import os
 import sys
@@ -24,8 +9,8 @@ from pygame.locals import *
 pygame.font.init()
 pygame.mixer.init()
 
-X = 1850
-Y = 850
+X = 2850
+Y = 1850
 
 screen = pygame.display.set_mode((X, Y))
 clock = pygame.time.Clock()
@@ -86,25 +71,10 @@ def mainGame():
     
     def gameOver():
         """ Displays a game over screen in its own little loop. It is called when it has been determined that the player's funds have
-        run out. All the player can do from this screen is exit the game."""
-        
-        while 1:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    sys.exit()
-                if event.type == KEYDOWN and event.key == K_ESCAPE:
-                    sys.exit()
-
-            # Fill the screen with black
-            screen.fill((0,0,0))
-            
-            # Render "Game Over" sentence on the screen
-            oFont = pygame.font.Font(None, 50)
-            displayFont = pygame.font.Font.render(oFont, "Game over! You're outta cash!", 1, (255,255,255), (0,0,0)) 
-            screen.blit(displayFont, (X, y))
-            
-            # Update the display
-            pygame.display.flip()
+        run out. All the player can do from this screen is exit the game.""" 
+        screen.blit(displayFont, (X, y))
+        # Update the display
+        pygame.display.flip()
             
     ######## DECK FUNCTIONS BEGIN ########
     def shuffle(deck):
@@ -317,16 +287,15 @@ def mainGame():
             return value, click
 
     class ExitButton(pygame.sprite.Sprite):
-        """ Button that allows player to increase his bet (in between hands only). """
-
+        """ Button to exit the game. """
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
             self.image, self.rect = imageLoad("exit.png", 0)
-            self.position = (710, 355)
+            self.position = (50, 40)
        
         def update(self, mX, mY, click):
             self.image, self.rect = imageLoad("exit.png", 0)
-            self.position = (710, 355)
+            self.position = (50, 40)
             self.rect.center = self.position
             print("pos button", self.rect.center)
             if self.rect.collidepoint(mX, mY) == 1 and click == 1:
@@ -337,7 +306,7 @@ def mainGame():
          
     ###### INITIALIZATION BEGINS ######
     # This font is used to display text on the right-hand side of the screen
-    textFont = pygame.font.Font(None, 28)
+    textFont = pygame.font.Font(None, 128)
 
     # This sets up the background image, and its container rect
     background, backgroundRect = imageLoad("spielfeld_big.jpg", 0)
@@ -392,40 +361,25 @@ def mainGame():
         round_idx +=1
         pygame.event.clear()
         screen.blit(background, backgroundRect)
-        
         displayFont = display(textFont, "Click on start to start the game.")
-        
-        for round_idx in range(max_rounds):
-            screen.blit(displayFont, (100,444))
-            fundsFont = pygame.font.Font.render(textFont, "Card win estimate: $%.2f" %(value), 1, (255,255,255), (0,0,0))
-            screen.blit(fundsFont, (663,205))
-            hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 1, (255,255,255), (0,0,0))
-            screen.blit(hpFont, (663, 180))
+        # int game
+        round_obj = Round(deck, amountPlayer, playerCards, 0) 
+        player1 = Player("Chris", 0)
+
+        for round_idx in range(1, max_rounds):
+            round_obj.init_new_round(round_idx, [player1])
+            hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
+            screen.blit(hpFont, (1300, 80))
             print("new")
-            playerCards = showCards(deck, playerCards, round_idx);
             buttons.draw(screen)
             pygame.display.flip()
-            value, click = bbU.update(mX, mY, value, click)
-            value, click = bbD.update(mX, mY, value, click)
             exitB.update(mX, mY,click)
-            print("click", click)
-            # event_wait = pygame.event.wait()
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    sys.exit()
-                elif event.type == MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        mX, mY = pygame.mouse.get_pos()
-                        click = 1
-                    elif event.type == MOUSEBUTTONUP:
-                        mX, mY = 0, 0
-                        click = 0
             if len(playerCards) is not 0:
                 playerCards.update()
                 playerCards.draw(screen)
                 cards.update()
                 cards.draw(screen)
-            time.sleep(2)
+            player1.play_card()
             print("click x {} y {} ".format(mX, mY))
         
     ###### MAIN GAME LOOP ENDS ######
@@ -438,9 +392,6 @@ def setCardEstimate():
 
 def showCards(deck_dict, playerCards,round_idx):
     print(" show cards ")
-    dCardPos = (450, 470)
-    pCardPos = (X - 400, Y - 120)
-    #pCardPos = (1400, 680)
     playerCards.empty()
     key_list = []
     playerHand = []
@@ -455,6 +406,83 @@ def showCards(deck_dict, playerCards,round_idx):
         playerCards.add(card)
 
     return playerCards
+
+class Round():
+    def __init__(self, deck, amountPlayer, playerCards, round_idx):
+        print("Create Round")
+        self.deck = copy.deepcopy(deck)
+        self.amountPlayer = amountPlayer
+        self.round_idx = round_idx
+        self.table_of_truth = []
+        self.powerfull_color = None
+        self.key_list = []
+        self.playerCards = playerCards
+        self.pCardPos = (X - 400, Y - 120)
+    
+    def set_key_list(self):
+        for key in self.deck.keys():
+            self.key_list.append(key)
+
+    def set_power_card(self):
+        """ set and display the power card for the current round
+
+        """
+
+
+    def init_new_round(self, round_idx, player_list):
+        self.round_idx = round_idx
+        cards = []
+        self.set_key_list()
+        for player in player_list:
+            cards = [] 
+            for idx in range(round_idx):
+                k = random.choice(self.key_list)
+                self.key_list.remove(k)
+                card = cardSprite(k, self.pCardPos)
+                self.pCardPos = (self.pCardPos[0] - 150, self.pCardPos [1])
+            player.set_cards(k)
+
+
+
+class Player():
+    def __init__(self, name, turn, human=True):
+        self.name = name
+        self.human = human
+        self.points = 0
+        self.current_cards = []
+        self.current_win_estimate = 0
+        self.turn = turn
+       
+    def set_cards(self, cards):
+        self.currentCard = cards
+
+    def play_card(self):
+        print("players cards {} ".format(self.currentCard))
+        while True:
+            time.sleep(1)
+            mX, mY = check_mous_click()
+            print("payer choose card",mX, mY)
+
+
+
+def check_mous_click():
+    mX = -1
+    mY = -1 
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            sys.exit()
+        elif event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                mX, mY = pygame.mouse.get_pos()
+                click = 1
+            elif event.type == MOUSEBUTTONUP:
+                mX, mY = 0, 0
+    return mX, mY 
+
+
+
+
+
 
 
 if __name__ == "__main__":
