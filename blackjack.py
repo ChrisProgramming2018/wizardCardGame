@@ -60,8 +60,10 @@ class cardSprite(pygame.sprite.Sprite):
     def __init__(self, card, position):
         pygame.sprite.Sprite.__init__(self)
         cardImage = card + ".png"
+        self.name = card
         self.image, self.rect = imageLoad(cardImage, 1)
         self.position = position
+    
     def update(self):
         self.rect.center = self.position
             
@@ -182,11 +184,15 @@ def mainGame():
         def __init__(self, card, position):
             pygame.sprite.Sprite.__init__(self)
             cardImage = card + ".png"
+            self.name = card
             self.image, self.rect = imageLoad(cardImage, 1)
             self.position = position
+        
         def update(self):
             self.rect.center = self.position
-            
+
+
+
     class hitButton(pygame.sprite.Sprite):
         """ Button that allows player to hit (take another card from the deck). """
         
@@ -364,9 +370,10 @@ def mainGame():
         round_obj = Round(deck, amountPlayer, playerCards, 0) 
         player1 = Player("Chris", 0)
 
-        for round_idx in range(3, max_rounds):
+        for round_idx in range(9, max_rounds):
             round_obj.init_new_round(round_idx, [player1])
             round_obj.set_power_card(screen)
+            player1.show_current_cards(screen)
             hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
             screen.blit(hpFont, (1300, 80))
             print("new")
@@ -389,22 +396,6 @@ def setCardEstimate():
     """ """
     pass 
 
-def showCards(deck_dict, playerCards,round_idx):
-    print(" show cards ")
-    playerCards.empty()
-    key_list = []
-    playerHand = []
-    for key in deck_dict.keys() :
-        key_list.append(key)
-    
-    for idx in range(round_idx):
-        playerHand.append(random.choice(key_list))
-    for x in playerHand:
-        card = cardSprite(x, pCardPos)
-        pCardPos = (pCardPos[0] - 150, pCardPos [1])
-        playerCards.add(card)
-
-    return playerCards
 
 class Round():
     def __init__(self, deck, amountPlayer, playerCards, round_idx):
@@ -457,6 +448,7 @@ class Round():
 
 
 
+
 class Player():
     def __init__(self, name, turn, human=True):
         self.name = name
@@ -471,12 +463,26 @@ class Player():
         self.currentCard = cards
         self.current_cards_sprite = cards_sprite
 
+    def show_current_cards(self, screen):
+        """ Display current cards on screen
+        """
+        cards = pygame.sprite.Group()
+        for card in self.current_cards_sprite:
+            card.update()
+            cards.add(card)
+        cards.draw(screen)
+
+
     def play_card(self):
         print("players cards {} ".format(self.currentCard))
         while True:
             time.sleep(1)
             mX, mY = check_mous_click()
-            print("payer choose card",mX, mY)
+            print("payer choose card ", mX, mY)
+            for card in self.current_cards_sprite:
+                if card.rect.collidepoint(mX, mY) == 1:
+                    print(card.name)
+
 
 
 
