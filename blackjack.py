@@ -353,12 +353,10 @@ def mainGame():
     ###### INITILIZATION ENDS ########
     
     ###### MAIN GAME LOOP BEGINS #######
-    round_idx = 0
     handsPlayed = 0
     amountPlayer = 2
     max_rounds = 10
     while True:
-        round_idx +=1
         pygame.event.clear()
         screen.blit(background, backgroundRect)
         displayFont = display(textFont, "Click on start to start the game.")
@@ -366,8 +364,9 @@ def mainGame():
         round_obj = Round(deck, amountPlayer, playerCards, 0) 
         player1 = Player("Chris", 0)
 
-        for round_idx in range(1, max_rounds):
+        for round_idx in range(3, max_rounds):
             round_obj.init_new_round(round_idx, [player1])
+            round_obj.set_power_card(screen)
             hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
             screen.blit(hpFont, (1300, 80))
             print("new")
@@ -414,24 +413,36 @@ class Round():
         self.amountPlayer = amountPlayer
         self.round_idx = round_idx
         self.table_of_truth = []
-        self.powerfull_color = None
+        self.powerfull_color = []  # color sprite
         self.key_list = []
         self.playerCards = playerCards
         self.pCardPos = (X - 400, Y - 120)
+        self.powerCardPos = (X- 1450, Y - 1200)
     
     def set_key_list(self):
         for key in self.deck.keys():
             self.key_list.append(key)
 
-    def set_power_card(self):
+    def set_power_card(self, screen):
         """ set and display the power card for the current round
 
         """
+        print("Set power card")
+        cards = pygame.sprite.Group()
+        k = random.choice(self.key_list)
+        self.key_list.remove(k)
+        card = cardSprite(k, self.powerCardPos)
+        self.powerfull_color = [card, k[0]]
+        card.update()
+        cards.add(card)
+        cards.draw(screen)
+        print("Current Power is {} ".format(self.powerfull_color[1]))
 
 
     def init_new_round(self, round_idx, player_list):
         self.round_idx = round_idx
         cards = []
+        cards_sprite = []
         self.set_key_list()
         for player in player_list:
             cards = [] 
@@ -440,7 +451,9 @@ class Round():
                 self.key_list.remove(k)
                 card = cardSprite(k, self.pCardPos)
                 self.pCardPos = (self.pCardPos[0] - 150, self.pCardPos [1])
-            player.set_cards(k)
+                cards.append(k)
+                cards_sprite.append(card)
+            player.set_cards(cards, cards_sprite)
 
 
 
@@ -450,11 +463,13 @@ class Player():
         self.human = human
         self.points = 0
         self.current_cards = []
+        self.current_cards_sprite = []
         self.current_win_estimate = 0
         self.turn = turn
        
-    def set_cards(self, cards):
+    def set_cards(self, cards, cards_sprite):
         self.currentCard = cards
+        self.current_cards_sprite = cards_sprite
 
     def play_card(self):
         print("players cards {} ".format(self.currentCard))
