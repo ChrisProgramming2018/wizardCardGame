@@ -370,7 +370,7 @@ def mainGame():
         round_obj = Round(deck, amountPlayer, playerCards, 0) 
         player1 = Player("Chris", 0)
 
-        for round_idx in range(9, max_rounds):
+        for round_idx in range(4, max_rounds):
             round_obj.init_new_round(round_idx, [player1])
             round_obj.set_power_card(screen)
             player1.show_current_cards(screen)
@@ -386,6 +386,9 @@ def mainGame():
                 cards.update()
                 cards.draw(screen)
             player1.play_card()
+            player1.show_current_cards(screen)
+            pygame.display.flip()
+            time.sleep(5)
             print("click x {} y {} ".format(mX, mY))
         
     ###### MAIN GAME LOOP ENDS ######
@@ -458,6 +461,7 @@ class Player():
         self.current_cards_sprite = []
         self.current_win_estimate = 0
         self.turn = turn
+        self.currend_played_card = None
        
     def set_cards(self, cards, cards_sprite):
         self.currentCard = cards
@@ -479,9 +483,16 @@ class Player():
             time.sleep(1)
             mX, mY = check_mous_click()
             print("payer choose card ", mX, mY)
+            if mX == -1:
+                continue
             for card in self.current_cards_sprite:
                 if card.rect.collidepoint(mX, mY) == 1:
                     print(card.name)
+                    card.position = (X -1000, Y - 1400)
+                    card.update()
+                    self.currend_played_card = card
+            if self.currend_played_card is not None:
+                break
 
 
 
