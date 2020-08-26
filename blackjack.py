@@ -368,7 +368,7 @@ def mainGame():
         displayFont = display(textFont, "Click on start to start the game.")
         # int game
         round_obj = Round(deck, amountPlayer, playerCards, 0) 
-        player1 = Player("Chris", 0)
+        player1 = Player("Chris", idx=1, turn=0)
 
         for round_idx in range(4, max_rounds):
             round_obj.init_new_round(round_idx, [player1])
@@ -377,7 +377,6 @@ def mainGame():
             hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
             screen.blit(hpFont, (1300, 80))
             print("new")
-            buttons.draw(screen)
             pygame.display.flip()
             exitB.update(mX, mY,click)
             if len(playerCards) is not 0:
@@ -406,13 +405,21 @@ class Round():
         self.deck = copy.deepcopy(deck)
         self.amountPlayer = amountPlayer
         self.round_idx = round_idx
-        self.table_of_truth = []
         self.powerfull_color = []  # color sprite
         self.key_list = []
         self.playerCards = playerCards
         self.pCardPos = (X - 400, Y - 120)
         self.powerCardPos = (X- 1450, Y - 1200)
-    
+        # save the scores of the game 
+        self.table_of_truth = []
+        self.total_score_players = []
+        self.current_estimate = []
+        self.current_wins = []
+        for i in range(amountPlayer):
+            self.total_score_players.append(0)
+            self.current_estimate.append(0)
+            self.current_wins.append(0)
+
     def set_key_list(self):
         for key in self.deck.keys():
             self.key_list.append(key)
@@ -453,9 +460,10 @@ class Round():
 
 
 class Player():
-    def __init__(self, name, turn, human=True):
+    def __init__(self, name, turn, idx, human=True):
         self.name = name
         self.human = human
+        self.player_idx = idx
         self.points = 0
         self.current_cards = []
         self.current_cards_sprite = []
@@ -493,7 +501,15 @@ class Player():
                     self.currend_played_card = card
             if self.currend_played_card is not None:
                 break
+    def set_amout_wins(self):
+        """
+        At each round the player has to chose how many wins he estimate
+        In case he is the last person he is not allowed to choose the amount
+        which will add to the total_amount of the current cards
+        
+        """
 
+        # case he is last
 
 
 
