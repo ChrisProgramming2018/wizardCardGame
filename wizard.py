@@ -25,6 +25,7 @@ def main():
     ###### INITIALIZATION BEGINS ######
     # This font is used to display text on the right-hand side of the screen
     textFont = pygame.font.Font(None, 128)
+    textFont2 = pygame.font.Font(None, 90)
     # This sets up the background image, and its container rect
     background, backgroundRect = imageLoad("spielfeld_big.jpg", 0)
 
@@ -59,6 +60,9 @@ def main():
     # int game
     round_obj = Round(deck, amountPlayer, playerCards, 0)
     player1 = Player("Chris", idx=1, turn=0)
+    player2 = Player("Com1", idx=2, turn=1 , human = False)
+    playerList = [player1, player2]
+
     for round_idx in range(4, max_rounds):
         print("round {}".format(round_idx))
         round_obj.init_new_round(round_idx, [player1])
@@ -66,6 +70,7 @@ def main():
         player1.show_current_cards(screen)
         hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
         screen.blit(hpFont, (1300, 80))
+        updatedisplayScore(textFont2, screen, playerList)
         pygame.display.flip()
         exitB.update(mX, mY,click)
         if len(playerCards) is not 0:
@@ -81,7 +86,12 @@ def main():
 
 
 
+def updatedisplayScore(textFont2, screen, playerList):
+    """   """
 
+    for idx, player in enumerate(playerList):
+        scoreFont = pygame.font.Font.render(textFont2, "{}  has {} Points".format(player.name, player.points), 3, (255,255,255), (0,0,0))
+        screen.blit(scoreFont, (X-700, Y- 1200 + (idx * 100)))
 
 
 
