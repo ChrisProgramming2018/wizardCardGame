@@ -91,6 +91,7 @@ def main():
             screen.blit(background, backgroundRect)
             game.show_power_card(screen)
             player1.show_current_cards(screen)
+            player2.show_played_card(screen)
             player1.show_played_card(screen)
             buttons.draw(screen)
             updatedisplayScore(textFont2, screen, playerList)

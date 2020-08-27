@@ -235,6 +235,17 @@ class Player():
         print("players cards {} ".format(self.current_cards))
         if not self.human:
             print("Comuter cards {} ".format(self.current_cards))
+            k = random.choice(self.current_cards)
+            print("card to play ", k)
+            for card in self.current_cards_sprite:
+                if card.name == k:
+                    print(card.name)
+                    card.position = (X -2000, Y - 1400)
+                    card.update()
+                    self.current_cards.remove(card.name)
+                    self.current_cards_sprite.remove(card)
+                    self.currend_played_card = card
+            
             return 
         while True:
             time.sleep(1)
