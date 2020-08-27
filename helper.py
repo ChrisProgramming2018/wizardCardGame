@@ -104,21 +104,39 @@ class ExitButton(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = imageLoad("exit.png", 0)
         self.position = (50, 40)
+        self.rect.center = self.position
 
     def update(self, mX, mY, click):
         self.image, self.rect = imageLoad("exit.png", 0)
-        self.position = (50, 40)
-        self.rect.center = self.position
-        print("pos button", self.rect.center)
         if self.rect.collidepoint(mX, mY) == 1 and click == 1:
             print("Exit Clicked ")
             sys.exit()
+
+class StartButton(pygame.sprite.Sprite):
+    """ Button to exit the game. """
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image, self.rect = imageLoad("start.png", 0)
+        self.position = (300, 1500)
+        self.rect.center = self.position
+
+    def update(self, mX, mY, click, game):
+        self.rect.center = self.position
+        print("Start update ", self.position)
+        if self.rect.collidepoint(mX, mY) == 1 and click == 1:
+            click = 0
+            print("Start Clicked ")
+            game.play = True
+        return click
+
+
 
 
 
 class Round():
     def __init__(self, deck, amountPlayer, playerCards, round_idx):
         print("Create Round")
+        self.play = False 
         self.deck = copy.deepcopy(deck)
         self.amountPlayer = amountPlayer
         self.round_idx = round_idx
@@ -218,6 +236,8 @@ class Player():
                     self.currend_played_card = card
             if self.currend_played_card is not None:
                 break
+
+
     def set_amout_wins(self):
         """
         At each round the player has to chose how many wins he estimate
@@ -225,8 +245,15 @@ class Player():
         which will add to the total_amount of the current cards
         
         """
-
         # case he is last
+
+
+
+        # case not last 
+
+
+
+        self.current_win_estimate = 0
 
 
 
@@ -242,5 +269,6 @@ def check_mous_click():
                 click = 1
             elif event.type == MOUSEBUTTONUP:
                 mX, mY = 0, 0
+    print("mouse {} {} ".format(mX, mY))
     return mX, mY 
 
