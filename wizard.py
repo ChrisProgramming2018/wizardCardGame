@@ -9,6 +9,7 @@ from pygame.locals import *
 
 from helper import imageLoad, soundLoad, display, display, playClick
 from helper import ExitButton, createDeck, Round, Player, check_mous_click
+from helper import StartButton
 
 pygame.font.init()
 pygame.mixer.init()
@@ -37,9 +38,9 @@ def main():
 
     # This creates instances of all the button sprites
     exitB = ExitButton()
-
+    startB = StartButton()
     # This group containts the button sprites
-    buttons = pygame.sprite.Group(exitB)
+    buttons = pygame.sprite.Group(exitB, startB)
 
     # The 52 card deck is created
     deck = createDeck()
@@ -58,43 +59,68 @@ def main():
     screen.blit(background, backgroundRect)
     displayFont = display(textFont, "Click on start to start the game.")
     # int game
-    round_obj = Round(deck, amountPlayer, playerCards, 0)
+    game = Round(deck, amountPlayer, playerCards, 0)
     player1 = Player("Chris", idx=1, turn=0)
     player2 = Player("Com1", idx=2, turn=1 , human = False)
     playerList = [player1, player2]
-
     for round_idx in range(4, max_rounds):
         print("round {}".format(round_idx))
-        round_obj.init_new_round(round_idx, [player1])
-        round_obj.set_power_card(screen)
+        game.init_new_round(round_idx, [player1, player2])
+        #game.init_new_round(round_idx, [player1])
+        game.set_power_card(screen)
         player1.show_current_cards(screen)
         hpFont = pygame.font.Font.render(textFont, "Round: %i " %(round_idx), 3, (255,255,255), (0,0,0))
         screen.blit(hpFont, (1300, 80))
         updatedisplayScore(textFont2, screen, playerList)
+        
+        buttons.draw(screen)
         pygame.display.flip()
-        exitB.update(mX, mY,click)
-        if len(playerCards) is not 0:
-            playerCards.update()
-            playerCards.draw(screen)
-            cards.update()
-            cards.draw(screen)
-        player1.play_card()
-        player1.show_current_cards(screen)
-        pygame.display.flip()
-        time.sleep(5)
+        while game.play is False:
+            time.sleep(1)
+            mX, mY, click = check_mous_click()
+            pygame.display.flip()
+            exitB.update(mX, mY,click)
+            click = startB.update(mX, mY,click, game)
+        # start the new round play all cards
+        while True:
+            # choose your playing card
+            player2.play_card()
+            player1.play_card()
+            
+            pygame.event.clear()
+            screen.blit(background, backgroundRect)
+            game.show_power_card(screen)
+            player1.show_current_cards(screen)
+            player1.show_played_card(screen)
+            buttons.draw(screen)
+            updatedisplayScore(textFont2, screen, playerList)
+            screen.blit(hpFont, (1300, 80))
+            pygame.display.flip()
+            time.sleep(2)
+            pygame.event.clear()
+            screen.blit(background, backgroundRect)
+            game.show_power_card(screen)
+            player1.show_current_cards(screen)
+            buttons.draw(screen)
+            updatedisplayScore(textFont2, screen, playerList)
+            screen.blit(hpFont, (1300, 80))
+            pygame.display.flip()
+            time.sleep(2)
+
         print("click x {} y {} ".format(mX, mY))
 
 
 
 def updatedisplayScore(textFont2, screen, playerList):
-    """   """
+    """ Displays    """
 
     for idx, player in enumerate(playerList):
         scoreFont = pygame.font.Font.render(textFont2, "{}  has {} Points".format(player.name, player.points), 3, (255,255,255), (0,0,0))
-        screen.blit(scoreFont, (X-700, Y- 1200 + (idx * 100)))
+        screen.blit(scoreFont, (X - 700, Y - 1200 + (idx * 100)))
 
 
-
+def updatedisplayEstimate():
+    """ """
 
 
 

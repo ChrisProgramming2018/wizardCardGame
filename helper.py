@@ -164,24 +164,26 @@ class Round():
 
         """
         print("Set power card")
-        cards = pygame.sprite.Group()
         k = random.choice(self.key_list)
         self.key_list.remove(k)
-        card = cardSprite(k, self.powerCardPos)
-        self.powerfull_color = [card, k[0]]
-        card.update()
-        cards.add(card)
-        cards.draw(screen)
-        print("Current Power is {} ".format(self.powerfull_color[1]))
+        self.power_full_card_sprite = cardSprite(k, self.powerCardPos)
+        self.powerfull_color = [k[0]]
+        self.show_power_card(screen)
+        print("Current Power is {} ".format(self.powerfull_color[0]))
 
+    def show_power_card(self, screen):
+        cards = pygame.sprite.Group()
+        cards.add(self.power_full_card_sprite)
+        self.power_full_card_sprite.update()
+        print("Current Power is {} ".format(self.powerfull_color[0]))
+        cards.draw(screen)
 
     def init_new_round(self, round_idx, player_list):
         self.round_idx = round_idx
-        cards = []
-        cards_sprite = []
         self.set_key_list()
         for player in player_list:
-            cards = [] 
+            cards = []
+            cards_sprite = []
             for idx in range(round_idx):
                 k = random.choice(self.key_list)
                 self.key_list.remove(k)
@@ -189,6 +191,7 @@ class Round():
                 self.pCardPos = (self.pCardPos[0] - 150, self.pCardPos [1])
                 cards.append(k)
                 cards_sprite.append(card)
+            print("player {} add cards {} ".format(player.name, len(cards)))
             player.set_cards(cards, cards_sprite)
 
 
@@ -207,24 +210,35 @@ class Player():
         self.currend_played_card = None
        
     def set_cards(self, cards, cards_sprite):
-        self.currentCard = cards
+        self.current_cards = cards
         self.current_cards_sprite = cards_sprite
 
     def show_current_cards(self, screen):
-        """ Display current cards on screen
-        """
+        """ Display current cards on screen """
+        print("Update show current cards", self.name)
+        print("Update show current cards", len(self.current_cards))
+
         cards = pygame.sprite.Group()
         for card in self.current_cards_sprite:
+            print(self.name)
             card.update()
             cards.add(card)
         cards.draw(screen)
 
-
+    def show_played_card(self, screen):
+        cards = pygame.sprite.Group()
+        cards.update()
+        cards.add(self.currend_played_card)
+        cards.draw(screen)
+    
     def play_card(self):
-        print("players cards {} ".format(self.currentCard))
+        print("players cards {} ".format(self.current_cards))
+        if not self.human:
+            print("Comuter cards {} ".format(self.current_cards))
+            return 
         while True:
             time.sleep(1)
-            mX, mY = check_mous_click()
+            mX, mY, click = check_mous_click()
             print("payer choose card ", mX, mY)
             if mX == -1:
                 continue
@@ -233,8 +247,11 @@ class Player():
                     print(card.name)
                     card.position = (X -1000, Y - 1400)
                     card.update()
+                    self.current_cards.remove(card.name)
+                    self.current_cards_sprite.remove(card)
                     self.currend_played_card = card
             if self.currend_played_card is not None:
+                print("players cards {} ".format(self.current_cards))
                 break
 
 
@@ -270,5 +287,5 @@ def check_mous_click():
             elif event.type == MOUSEBUTTONUP:
                 mX, mY = 0, 0
     print("mouse {} {} ".format(mX, mY))
-    return mX, mY 
+    return mX, mY, 1 
 
