@@ -59,10 +59,10 @@ def main():
     screen.blit(background, backgroundRect)
     displayFont = display(textFont, "Click on start to start the game.")
     # int game
-    game = Round(deck, amountPlayer, playerCards, 0)
     player1 = Player("Chris", idx=1, turn=0)
     player2 = Player("Com1", idx=2, turn=1 , human = False)
     playerList = [player1, player2]
+    game = Round(deck, amountPlayer, playerCards, playerList)
     for round_idx in range(4, max_rounds):
         print("round {}".format(round_idx))
         game.init_new_round(round_idx, [player1, player2])
@@ -93,6 +93,7 @@ def main():
             player1.show_current_cards(screen)
             player2.show_played_card(screen)
             player1.show_played_card(screen)
+            game.compare_cards()
             buttons.draw(screen)
             updatedisplayScore(textFont2, screen, playerList)
             screen.blit(hpFont, (1300, 80))
@@ -107,6 +108,12 @@ def main():
             screen.blit(hpFont, (1300, 80))
             pygame.display.flip()
             time.sleep(2)
+            
+            # break if all cards are played
+            if len(player1.current_cards) == 0:
+                print("round done calculate the score")
+                break
+
 
         print("click x {} y {} ".format(mX, mY))
 

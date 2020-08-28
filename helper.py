@@ -134,17 +134,18 @@ class StartButton(pygame.sprite.Sprite):
 
 
 class Round():
-    def __init__(self, deck, amountPlayer, playerCards, round_idx):
+    def __init__(self, deck, amountPlayer, playerCards, player_list):
         print("Create Round")
         self.play = False 
         self.deck = copy.deepcopy(deck)
         self.amountPlayer = amountPlayer
-        self.round_idx = round_idx
+        self._player_list = player_list
+        self.round_idx = 0
         self.powerfull_color = []  # color sprite
         self.key_list = []
         self.playerCards = playerCards
         self.pCardPos = (X - 400, Y - 120)
-        self.powerCardPos = (X- 1450, Y - 1200)
+        self.powerCardPos = (X - 1450, Y - 1200)
         # save the scores of the game 
         self.table_of_truth = []
         self.total_score_players = []
@@ -179,6 +180,8 @@ class Round():
         cards.draw(screen)
 
     def init_new_round(self, round_idx, player_list):
+        self.pCardPos = (X - 400, Y - 120)
+        self.powerCardPos = (X- 1450, Y - 1200)
         self.round_idx = round_idx
         self.set_key_list()
         for player in player_list:
@@ -194,6 +197,15 @@ class Round():
             print("player {} add cards {} ".format(player.name, len(cards)))
             player.set_cards(cards, cards_sprite)
 
+    def compare_cards(self):
+        """ """
+
+        # set current color from card of player turn
+        current_color = ""
+        for player in self._player_list:
+            if player.turn:
+                current_color = player.currend_played_card.name[0]
+                print("current color", current_color)
 
 
 
